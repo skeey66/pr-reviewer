@@ -29,5 +29,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### Node ###
+node_modules/
+frontend/dist/
+
 ### Environment ###
 .env
