@@ -1,19 +1,38 @@
-# PR Reviewer
+# CodeRev
 
-GitHub PR을 AI(OpenAI)로 자동 리뷰하는 Spring Boot 애플리케이션.
+GitHub PR을 AI(OpenAI)로 자동 리뷰하는 풀스택 애플리케이션.
 
-사용자가 GitHub OAuth2로 로그인하고 저장소를 구독하면, 주기적으로 Open PR을 폴링하여 diff를 분석하고 코드 리뷰 코멘트를 자동 생성합니다.
+GitHub OAuth2로 로그인하고 저장소를 구독하면, Open PR을 주기적으로 폴링하여 diff를 분석하고 코드 리뷰 코멘트를 자동 생성합니다.
 
 ## 주요 기능
 
-- **GitHub OAuth2 인증** - GitHub 계정으로 로그인
-- **저장소 구독** - 리뷰 대상 저장소를 구독/해제
-- **자동 PR 폴링** - 10분 간격으로 Open PR 감지 및 diff 수집
-- **AI 코드 리뷰** - OpenAI(GPT-4o)를 활용한 자동 리뷰 (CRITICAL/WARNING/INFO 심각도)
-- **수동 리뷰 트리거** - API를 통해 특정 PR에 대해 즉시 리뷰 요청
-- **일일 리포트** - 매일 09:00에 전날 리뷰 결과를 구독별로 집계
+- **GitHub OAuth2 인증** — GitHub 계정으로 로그인
+- **저장소 구독** — 리뷰 대상 저장소를 구독/해제
+- **자동 PR 폴링** — 10분 간격으로 Open PR 감지 및 diff 수집
+- **AI 코드 리뷰** — OpenAI(GPT-4o)를 활용한 자동 리뷰 (CRITICAL/WARNING/INFO 심각도)
+- **수동 리뷰 트리거** — 특정 PR에 대해 즉시 리뷰 요청
+- **일일 리포트** — 매일 09:00에 전날 리뷰 결과를 구독별로 집계
+- **다크 테마 UI** — React 기반 대시보드
+
+## 프로젝트 구조
+
+```
+pr-reviewer/
+├── backend/          # Spring Boot API 서버
+│   ├── src/
+│   ├── build.gradle
+│   └── gradlew
+├── frontend/         # React + Vite SPA
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.ts
+├── docker-compose.yml
+└── README.md
+```
 
 ## 기술 스택
+
+### 백엔드
 
 | 구분 | 기술 |
 |------|------|
@@ -28,22 +47,36 @@ GitHub PR을 AI(OpenAI)로 자동 리뷰하는 Spring Boot 애플리케이션.
 | API 문서 | SpringDoc OpenAPI (Swagger) |
 | 테스트 | JUnit 5 + Testcontainers (MySQL) |
 
+### 프론트엔드
+
+| 구분 | 기술 |
+|------|------|
+| Framework | React 19 + TypeScript |
+| Build | Vite |
+| Routing | React Router v7 |
+| HTTP | Axios |
+| Styling | Tailwind CSS v4 |
+| Icons | Lucide React |
+
 ## 시작하기
 
 ### 사전 요구사항
 
 - Java 21
+- Node.js 18+
 - Docker (MySQL 실행용)
 - GitHub OAuth App ([생성 가이드](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app))
 - OpenAI API Key
 
 ### 1. 환경 변수 설정
 
-```bash
-export GITHUB_CLIENT_ID=your_github_client_id
-export GITHUB_CLIENT_SECRET=your_github_client_secret
-export OPENAI_API_KEY=your_openai_api_key
-export ENCRYPTION_SECRET_KEY=your_32_character_secret_key
+`backend/.env` 파일을 생성합니다:
+
+```env
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+OPENAI_API_KEY=your_openai_api_key
+ENCRYPTION_SECRET_KEY=your_32_character_secret_key
 ```
 
 ### 2. DB 실행
@@ -54,16 +87,35 @@ docker compose up -d
 
 MySQL이 `localhost:3307`에서 실행됩니다.
 
-### 3. 애플리케이션 실행
+### 3. 백엔드 실행
 
 ```bash
-./gradlew bootRun
+cd backend
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
-### 4. 접속
+### 4. 프론트엔드 실행
 
-- 애플리케이션: http://localhost:8080
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 5. 접속
+
+- 프론트엔드: http://localhost:5173
 - Swagger UI: http://localhost:8080/swagger-ui.html
+
+## 화면 구성
+
+| 경로 | 페이지 | 설명 |
+|------|--------|------|
+| `/login` | 로그인 | GitHub OAuth 로그인 |
+| `/` | 대시보드 | 구독 저장소 목록, 저장소 추가/삭제 |
+| `/subscriptions/:id/pulls` | PR 목록 | PR 카드, 리뷰 기록, 리뷰 트리거 |
+| `/reviews/:id` | 리뷰 상세 | 리뷰 정보 + severity별 코멘트 |
+| `/subscriptions/:id/reports` | 일일 리포트 | 리포트 목록 + 상세 |
 
 ## API 엔드포인트
 
@@ -94,11 +146,6 @@ MySQL이 `localhost:3307`에서 실행됩니다.
 | GET | `/api/subscriptions/{id}/reports` | 구독별 리포트 목록 |
 | GET | `/api/reports/{id}` | 리포트 상세 |
 
-### 공개 엔드포인트
-| Method | Path | 설명 |
-|--------|------|------|
-| GET | `/api/health` | 헬스 체크 |
-
 ## 도메인 모델
 
 ```
@@ -115,7 +162,7 @@ users
 
 ## 핵심 플로우
 
-### 자동 리뷰 플로우
+### 자동 리뷰
 
 ```
 [10분 간격 스케줄러]
@@ -133,7 +180,7 @@ OpenAI API로 코드 리뷰 요청
 리뷰 코멘트 저장 (severity: CRITICAL/WARNING/INFO)
 ```
 
-### 일일 리포트 플로우
+### 일일 리포트
 
 ```
 [매일 09:00 스케줄러]

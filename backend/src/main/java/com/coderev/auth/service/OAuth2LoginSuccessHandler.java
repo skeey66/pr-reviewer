@@ -72,6 +72,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
           .build())
       );
 
-    response.sendRedirect("/api/me");
+    response.sendRedirect("http://localhost:5173/");
   }
 }
