@@ -32,6 +32,17 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(response);
   }
 
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e) {
+    ErrorResponse response = ErrorResponse.builder()
+      .status(HttpStatus.NOT_FOUND.value())
+      .error("Not Found")
+      .message(e.getMessage())
+      .build();
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+  }
+
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
     ErrorResponse response = ErrorResponse.builder()
