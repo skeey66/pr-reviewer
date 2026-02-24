@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sc query:*)",
+      "Bash(net stop:*)",
+      "Bash(cd:*)",
+      "Bash(tail:*)",
+      "Bash(head:*)",
+      "Bash(cd /c/Users/skeey/IdeaProjects/pr-reviewer && ./gradlew build -x test 2>&1)",
+      "Bash(cd /c/Users/skeey/IdeaProjects/pr-reviewer && ./gradlew test 2>&1)",
+      "Bash(cd /c/Users/skeey/IdeaProjects/pr-reviewer && docker compose up -d 2>&1)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)"
+    ]
+  }
+}
