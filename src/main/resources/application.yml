@@ -48,3 +48,8 @@ app:
     model: ${OPENAI_MODEL:gpt-4o}
   encryption:
     secret-key: ${ENCRYPTION_SECRET_KEY:default-dev-key-change-me-32ch}
+  github:
+    api-url: https://api.github.com
+  scheduler:
+    pr-poll-cron: "0 */10 * * * *"
+    daily-report-cron: "0 0 9 * * *"
