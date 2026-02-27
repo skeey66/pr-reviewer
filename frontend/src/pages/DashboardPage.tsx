@@ -54,8 +54,12 @@ export default function DashboardPage() {
                 </Link>
                 <button
                   onClick={async () => {
-                    await deleteSubscription(sub.id);
-                    refetch();
+                    try {
+                      await deleteSubscription(sub.id);
+                      refetch();
+                    } catch {
+                      // 에러 무시
+                    }
                   }}
                   className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   style={{ color: 'var(--accent-red)', background: 'none', border: 'none' }}
@@ -106,25 +110,30 @@ function AddRepoModal({
   onAdded: () => void;
   existingRepoIds: number[];
 }) {
-  const { data: repos, loading } = useApi(() => getRepos(), [open]);
+  const { data: repos, loading, error: reposError } = useApi(() => open ? getRepos() : Promise.resolve([]), [open]);
   const [search, setSearch] = useState('');
   const [adding, setAdding] = useState<number | null>(null);
 
   const filtered = repos?.filter(
     (r: GitHubRepoResponse) =>
       !existingRepoIds.includes(r.id) &&
-      r.fullName.toLowerCase().includes(search.toLowerCase()),
+      (r.fullName ?? '').toLowerCase().includes(search.toLowerCase()),
   ) || [];
 
   const handleAdd = async (repo: GitHubRepoResponse) => {
-    setAdding(repo.id);
-    const request: SubscriptionRequest = {
-      repoId: repo.id,
-      repoFullName: repo.fullName,
-    };
-    await createSubscription(request);
-    setAdding(null);
-    onAdded();
+    try {
+      setAdding(repo.id);
+      const request: SubscriptionRequest = {
+        repoId: repo.id,
+        repoFullName: repo.fullName,
+      };
+      await createSubscription(request);
+      onAdded();
+    } catch {
+      // 에러는 무시하고 UI 유지
+    } finally {
+      setAdding(null);
+    }
   };
 
   return (
@@ -146,6 +155,10 @@ function AddRepoModal({
 
       {loading ? (
         <LoadingSpinner />
+      ) : reposError ? (
+        <p className="text-center py-4 text-sm" style={{ color: 'var(--accent-red)' }}>
+          저장소 목록을 불러올 수 없습니다: {reposError}
+        </p>
       ) : !filtered.length ? (
         <p className="text-center py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
           추가 가능한 저장소가 없습니다

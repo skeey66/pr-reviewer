@@ -1,12 +1,13 @@
 package com.coderev.github.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class GitHubPullRequestResponse {
 
@@ -18,13 +19,10 @@ public class GitHubPullRequestResponse {
 
   private String state;
 
-  @JsonProperty("created_at")
   private OffsetDateTime createdAt;
 
-  @JsonProperty("closed_at")
   private OffsetDateTime closedAt;
 
-  @JsonProperty("merged_at")
   private OffsetDateTime mergedAt;
 
   private GitHubUserResponse user;
